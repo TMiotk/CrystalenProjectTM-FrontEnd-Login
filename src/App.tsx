@@ -1,47 +1,48 @@
-import { useState, useEffect } from "react";
-import "./App.css"; // Assuming you have some styles in App.css
-function App() {
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+import { useState, useEffect, ChangeEvent } from "react";
+import "./App.css";
+
+type LoginResponse = {
+  message: string;
+};
+
+const EMAIL_DOMAIN = "@crystalenproject.com";
+
+const isValidEmail = (email: string): boolean =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const isCompanyEmail = (email: string): boolean =>
+  email.toLowerCase().endsWith(EMAIL_DOMAIN);
+
+export default function App() {
+  const [email, setEmail] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
-    const status = localStorage.getItem("isLoggedIn");
-    if (status === "true") {
-      setIsLoggedIn(true);
-    }
+    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
   }, []);
-
-  const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleLogin = async () => {
     if (!isValidEmail(email)) {
       setMessage("Invalid email format");
       return;
     }
-
-    if (!email.toLowerCase().endsWith("@crystalenproject.com")) {
-      setMessage("Only company emails allowed (@crystalenproject.com)");
+    if (!isCompanyEmail(email)) {
+      setMessage(`Only company emails allowed (${EMAIL_DOMAIN})`);
       return;
     }
-
     try {
       const res = await fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-
       if (!res.ok) {
         setMessage(`Server error (${res.status})`);
         return;
       }
-
-      const data = await res.json();
-
+      const data: LoginResponse = await res.json();
       setMessage(data.message);
-
       if (data.message === "Firma Crystalen Project TM pozdrawia !") {
         localStorage.setItem("isLoggedIn", "true");
         setIsLoggedIn(true);
@@ -49,7 +50,7 @@ function App() {
         localStorage.setItem("isLoggedIn", "false");
         setIsLoggedIn(false);
       }
-    } catch (error) {
+    } catch {
       setMessage("Backend is not available. Please try again later.");
     }
   };
@@ -66,24 +67,58 @@ function App() {
       <div className="login-panel">
         {isLoggedIn ? (
           <>
-            <p>You are logged in ✅</p>
-            <button onClick={handleLogout}>Logout</button>
+            <StatusMessage message="You are logged in ✅" />
+            <ActionButton onClick={handleLogout} label="Logout" />
           </>
         ) : (
           <>
-            <input
-              type="email"
-              value={email}
-              placeholder="Enter your email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button onClick={handleLogin}>Login</button>
+            <EmailInput value={email} onChange={setEmail} />
+            <ActionButton onClick={handleLogin} label="Login" />
           </>
         )}
-        {message && <div className="login-error">{message}</div>}
+        {message && <ErrorMessage message={message} />}
       </div>
     </div>
   );
 }
 
-export default App;
+type EmailInputProps = {
+  value: string;
+  onChange: (val: string) => void;
+};
+
+function EmailInput({ value, onChange }: EmailInputProps) {
+  return (
+    <input
+      type="email"
+      value={value}
+      placeholder="Enter your email"
+      onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+    />
+  );
+}
+
+type ActionButtonProps = {
+  onClick: () => void;
+  label: string;
+};
+
+function ActionButton({ onClick, label }: ActionButtonProps) {
+  return <button onClick={onClick}>{label}</button>;
+}
+
+type ErrorMessageProps = {
+  message: string;
+};
+
+function ErrorMessage({ message }: ErrorMessageProps) {
+  return <div className="login-error">{message}</div>;
+}
+
+type StatusMessageProps = {
+  message: string;
+};
+
+function StatusMessage({ message }: StatusMessageProps) {
+  return <p>{message}</p>;
+}
