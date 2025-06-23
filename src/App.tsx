@@ -80,7 +80,7 @@ function App() {
             <button onClick={handleLogin}>Login</button>
           </>
         )}
-        <p>{message}</p>
+        {message && <div className="login-error">{message}</div>}
       </div>
     </div>
   );
