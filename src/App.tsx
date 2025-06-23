@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-
+import "./App.css"; // Assuming you have some styles in App.css
 function App() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -62,25 +62,26 @@ function App() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Login</h1>
-      {isLoggedIn ? (
-        <>
-          <p>You are logged in ✅</p>
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <input
-            type="email"
-            value={email}
-            placeholder="Enter your email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <button onClick={handleLogin}>Login</button>
-        </>
-      )}
-      <p>{message}</p>
+    <div className="login-header">
+      <div className="login-panel">
+        {isLoggedIn ? (
+          <>
+            <p>You are logged in ✅</p>
+            <button onClick={handleLogout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <input
+              type="email"
+              value={email}
+              placeholder="Enter your email"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button onClick={handleLogin}>Login</button>
+          </>
+        )}
+        <p>{message}</p>
+      </div>
     </div>
   );
 }
