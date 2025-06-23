@@ -23,11 +23,13 @@ export default function App() {
   }, []);
 
   const handleLogin = async () => {
-    if (!isValidEmail(email)) {
+    const trimmedEmail = email.trim();
+
+    if (!isValidEmail(trimmedEmail)) {
       setMessage("Invalid email format");
       return;
     }
-    if (!isCompanyEmail(email)) {
+    if (!isCompanyEmail(trimmedEmail)) {
       setMessage(`Only company emails allowed (${EMAIL_DOMAIN})`);
       return;
     }
@@ -35,7 +37,7 @@ export default function App() {
       const res = await fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: trimmedEmail }),
       });
       if (!res.ok) {
         setMessage(`Server error (${res.status})`);
@@ -54,7 +56,6 @@ export default function App() {
       setMessage("Backend is not available. Please try again later.");
     }
   };
-
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     setIsLoggedIn(false);
