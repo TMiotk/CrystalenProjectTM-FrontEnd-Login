@@ -1,5 +1,6 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import "./App.css";
+import Welcome from "./components/Welcome";
 
 type LoginResponse = {
   message: string;
@@ -88,6 +89,10 @@ export default function App() {
           <>
             <StatusMessage message="You are logged in ✅" />
             <ActionButton onClick={handleLogout} label="Logout" />
+            <Welcome />
+            <p className="welcome-text">
+              Welcome to the Crystalen Project TM! Enjoy your stay.
+            </p>
           </>
         ) : (
           <>
