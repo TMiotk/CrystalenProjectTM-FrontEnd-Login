@@ -3,6 +3,9 @@ import "./App.css";
 
 type LoginResponse = {
   message: string;
+  token?: string;
+  email?: string;
+  expiration?: number;
 };
 
 const EMAIL_DOMAIN = "@crystalenproject.com";
@@ -15,15 +18,19 @@ const isCompanyEmail = (email: string): boolean =>
 
 export default function App() {
   const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
-    setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
+    // Check if token exists in localStorage
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
   }, []);
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
 
     if (!isValidEmail(trimmedEmail)) {
       setMessage("Invalid email format");
@@ -33,33 +40,44 @@ export default function App() {
       setMessage(`Only company emails allowed (${EMAIL_DOMAIN})`);
       return;
     }
+    if (!trimmedPassword) {
+      setMessage("Password is required");
+      return;
+    }
     try {
       const res = await fetch("http://localhost:8080/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail }),
+        body: JSON.stringify({
+          email: trimmedEmail,
+          password: trimmedPassword,
+        }),
       });
       if (!res.ok) {
         setMessage(`Server error (${res.status})`);
         return;
       }
       const data: LoginResponse = await res.json();
-      setMessage(data.message);
-      if (data.message === "Firma Crystalen Project TM pozdrawia !") {
-        localStorage.setItem("isLoggedIn", "true");
+      if (data.token) {
+        localStorage.setItem("token", data.token);
         setIsLoggedIn(true);
+        setEmail("");
+        setPassword("");
+        setMessage(""); // clear message after successful login
       } else {
-        localStorage.setItem("isLoggedIn", "false");
         setIsLoggedIn(false);
+        setMessage(data.message || "Login failed");
       }
     } catch {
       setMessage("Backend is not available. Please try again later.");
     }
   };
+
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
     setEmail("");
+    setPassword("");
     setMessage("");
   };
 
@@ -74,10 +92,11 @@ export default function App() {
         ) : (
           <>
             <EmailInput value={email} onChange={setEmail} />
+            <PasswordInput value={password} onChange={setPassword} />
             <ActionButton onClick={handleLogin} label="Login" />
+            {message && <ErrorMessage message={message} />}
           </>
         )}
-        {message && <ErrorMessage message={message} />}
       </div>
     </div>
   );
@@ -94,6 +113,22 @@ function EmailInput({ value, onChange }: EmailInputProps) {
       type="email"
       value={value}
       placeholder="Enter your email"
+      onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+    />
+  );
+}
+
+type PasswordInputProps = {
+  value: string;
+  onChange: (val: string) => void;
+};
+
+function PasswordInput({ value, onChange }: PasswordInputProps) {
+  return (
+    <input
+      type="password"
+      value={value}
+      placeholder="Enter your password"
       onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
     />
   );
