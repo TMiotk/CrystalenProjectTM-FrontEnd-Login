@@ -1,3 +1,9 @@
+
+// Copyright © Tomasz Miotk, Crystalen Project TM.
+// This code is proprietary and for viewing purposes only.
+// Copying, editing, or distributing any part of this code 
+// is strictly prohibited without explicit permission from the author.
+
 import { useState, useEffect, ChangeEvent } from "react";
 import "./App.css";
 import Welcome from "./components/Welcome";
@@ -24,10 +30,15 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if token exists in localStorage
+   // Check if token exists in localStorage
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, []);
+
+  useEffect(()=>{
+  document.title = isLoggedIn ? "Welcome in Crystalen Project TM system!":"Nice to see you here , please log in"
+    
+  },[isLoggedIn])
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
