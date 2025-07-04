@@ -1,7 +1,6 @@
-
 // Copyright © Tomasz Miotk, Crystalen Project TM.
 // This code is proprietary and for viewing purposes only.
-// Copying, editing, or distributing any part of this code 
+// Copying, editing, or distributing any part of this code
 // is strictly prohibited without explicit permission from the author.
 
 import { useState, useEffect, ChangeEvent } from "react";
@@ -29,20 +28,29 @@ export default function App() {
   const [message, setMessage] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
+  const [accepted, setAccepted] = useState<boolean>(false);
+  const [showInfo, setShowInfo] = useState<boolean>(false);
+
   useEffect(() => {
-   // Check if token exists in localStorage
+    // Check if token exists in localStorage
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, []);
 
-  useEffect(()=>{
-  document.title = isLoggedIn ? "Welcome in Crystalen Project TM system!":"Nice to see you here , please log in"
-    
-  },[isLoggedIn])
+  useEffect(() => {
+    document.title = isLoggedIn
+      ? "Welcome in Crystalen Project TM system!"
+      : "Nice to see you here , please log in";
+  }, [isLoggedIn]);
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
+
+    if (!accepted) {
+      setMessage("You must accept the terms to log in.");
+      return;
+    }
 
     if (!isValidEmail(trimmedEmail)) {
       setMessage("Invalid email format");
@@ -57,7 +65,7 @@ export default function App() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8080/api/login", {
+      const res = await fetch("https://localhost:8443/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -109,6 +117,33 @@ export default function App() {
           <>
             <EmailInput value={email} onChange={setEmail} />
             <PasswordInput value={password} onChange={setPassword} />
+            <div
+              style={{ display: "flex", alignItems: "center", margin: "8px 0" }}
+            >
+              <input
+                type="checkbox"
+                id="accept"
+                checked={accepted}
+                onChange={(e) => setAccepted(e.target.checked)}
+                style={{ marginRight: 8 }}
+              />
+              <label htmlFor="accept" style={{ marginRight: 8 }}>
+                I accept the terms
+              </label>
+              {/* <FaInfoCircle
+                style={{ cursor: "pointer" }}
+                title="Click for more info"
+                onClick={() => setShowInfo((v) => !v)}
+              /> */}
+            </div>
+            {showInfo && (
+              <div
+                style={{ fontSize: "0.95em", color: "#555", marginBottom: 8 }}
+              >
+                To log in, you must accept the terms of use for Crystalen
+                Project TM.
+              </div>
+            )}
             <ActionButton onClick={handleLogin} label="Login" />
             {message && <ErrorMessage message={message} />}
           </>
